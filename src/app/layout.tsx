@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import WalletProvider from "@/providers/WalletProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -25,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <head>
         <link
           rel="preload"
@@ -42,7 +43,9 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
       </head>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+          <WalletProvider>{children}</WalletProvider>
+        </body>
     </html>
   );
 }
