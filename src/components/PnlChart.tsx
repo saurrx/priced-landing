@@ -11,8 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import type { PnlPoint } from "@/lib/jupiter";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+import { fetcher } from "@/lib/fetcher";
 
 const intervals = [
   { label: "24h", value: "24h" },
@@ -22,9 +21,11 @@ const intervals = [
 
 interface PnlChartProps {
   wallet: string;
+  /** When false, skip rendering ResponsiveContainer to avoid -1 dimension warnings in hidden tabs */
+  visible?: boolean;
 }
 
-export default function PnlChart({ wallet }: PnlChartProps) {
+export default function PnlChart({ wallet, visible = true }: PnlChartProps) {
   const [interval, setInterval] = useState("1w");
 
   const { data, isLoading } = useSWR<{ history: PnlPoint[] }>(
@@ -74,7 +75,7 @@ export default function PnlChart({ wallet }: PnlChartProps) {
           <div className="flex h-full items-center justify-center text-sm text-text-tertiary">
             No PnL data yet
           </div>
-        ) : (
+        ) : !visible ? null : (
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData}>
               <defs>

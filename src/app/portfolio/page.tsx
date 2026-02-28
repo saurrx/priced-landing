@@ -3,17 +3,22 @@
 import { useState, useCallback } from "react";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import useSWR from "swr";
+import { ArrowLeft, TrendingUp } from "lucide-react";
 import Nav from "@/components/Nav";
+import Footer from "@/components/Footer";
 import PortfolioSummary from "@/components/PortfolioSummary";
 import PositionCard from "@/components/PositionCard";
 import PnlChart from "@/components/PnlChart";
 import HistoryTimeline from "@/components/HistoryTimeline";
 import ClosePositionModal from "@/components/ClosePositionModal";
 import ConnectWalletModal from "@/components/ConnectWalletModal";
+import { useToast } from "@/components/Toast";
 import { signAndSendTransaction, getSolscanUrl } from "@/lib/transactions";
+import { fetcher } from "@/lib/fetcher";
+import { friendlyError } from "@/lib/errors";
 import type { Position, Profile } from "@/lib/jupiter";
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+const POSITIONS_PER_PAGE = 10;
 
 type Tab = "positions" | "history";
 
@@ -21,6 +26,7 @@ export default function PortfolioPage() {
   const { publicKey, connected } = useWallet();
   const wallet = useWallet();
   const { connection } = useConnection();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<Tab>("positions");
   const [connectModalOpen, setConnectModalOpen] = useState(false);
   const [closeModal, setCloseModal] = useState<{
@@ -28,6 +34,8 @@ export default function PortfolioPage() {
     position: Position | null;
   }>({ open: false, position: null });
   const [claimingPosition, setClaimingPosition] = useState<string | null>(null);
+  const [activeLimit, setActiveLimit] = useState(POSITIONS_PER_PAGE);
+  const [settledLimit, setSettledLimit] = useState(POSITIONS_PER_PAGE);
 
   const walletAddress = publicKey?.toBase58();
 
@@ -82,8 +90,10 @@ export default function PortfolioPage() {
           connection
         );
 
-        // Brief success feedback, then refresh
-        alert(`Claimed! View on Solscan: ${getSolscanUrl(signature)}`);
+        toast("success", "Claimed successfully!", {
+          label: "View on Solscan",
+          href: getSolscanUrl(signature),
+        });
         mutate();
       } catch (err) {
         if (
@@ -92,15 +102,13 @@ export default function PortfolioPage() {
         ) {
           // User cancelled, do nothing
         } else {
-          alert(
-            err instanceof Error ? err.message : "Claim failed"
-          );
+          toast("error", friendlyError(err));
         }
       } finally {
         setClaimingPosition(null);
       }
     },
-    [publicKey, wallet, connection, mutate]
+    [publicKey, wallet, connection, mutate, toast]
   );
 
   // Not connected state
@@ -137,6 +145,17 @@ export default function PortfolioPage() {
     <>
       <Nav />
       <main className="mx-auto max-w-5xl px-6 pt-24 pb-16">
+        {/* Back navigation */}
+        <div className="mb-6">
+          <a
+            href="/"
+            className="inline-flex items-center gap-1.5 text-sm text-text-tertiary transition-colors hover:text-text-primary"
+          >
+            <ArrowLeft size={14} />
+            Back to Home
+          </a>
+        </div>
+
         {/* Tab navigation */}
         <div className="mb-8 flex gap-1 border-b border-border-subtle">
           {(["positions", "history"] as const).map((tab) => (
@@ -157,98 +176,139 @@ export default function PortfolioPage() {
           ))}
         </div>
 
-        {activeTab === "positions" ? (
-          <>
-            {/* Summary cards */}
-            {isLoading ? (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="h-32 animate-pulse rounded-2xl bg-bg-elevated/50"
+        {/* Positions tab */}
+        <div className={activeTab !== "positions" ? "hidden" : ""}>
+          {/* Summary cards */}
+          {isLoading ? (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="h-32 animate-pulse rounded-2xl bg-bg-elevated/50"
+                />
+              ))}
+            </div>
+          ) : profile ? (
+            <PortfolioSummary positions={positions} profile={profile} />
+          ) : null}
+
+          {/* PnL Chart */}
+          {walletAddress && (
+            <div className="mt-6">
+              <PnlChart wallet={walletAddress} visible={activeTab === "positions"} />
+            </div>
+          )}
+
+          {/* Claimable positions */}
+          {claimablePositions.length > 0 && (
+            <div className="mt-8">
+              <h2 className="mb-4 text-lg font-black text-accent-amber">
+                Claimable Winnings
+              </h2>
+              <div className="flex flex-col gap-3">
+                {claimablePositions.map((pos) => (
+                  <PositionCard
+                    key={pos.pubkey}
+                    position={pos}
+                    onClaim={handleClaim}
                   />
                 ))}
               </div>
-            ) : profile ? (
-              <PortfolioSummary positions={positions} profile={profile} />
-            ) : null}
+            </div>
+          )}
 
-            {/* PnL Chart */}
-            {walletAddress && (
-              <div className="mt-6">
-                <PnlChart wallet={walletAddress} />
+          {/* Active positions */}
+          {activePositions.length > 0 && (
+            <div className="mt-8">
+              <h2 className="mb-4 text-lg font-black text-text-primary">
+                Active Positions
+              </h2>
+              <div className="flex flex-col gap-3">
+                {activePositions.slice(0, activeLimit).map((pos) => (
+                  <PositionCard
+                    key={pos.pubkey}
+                    position={pos}
+                    onClose={(p) =>
+                      setCloseModal({ open: true, position: p })
+                    }
+                  />
+                ))}
               </div>
-            )}
+              {activePositions.length > activeLimit && (
+                <button
+                  onClick={() =>
+                    setActiveLimit((l) => l + POSITIONS_PER_PAGE)
+                  }
+                  className="mt-3 w-full rounded-xl border border-border-subtle py-3 text-sm text-text-secondary transition-all hover:border-border-hover hover:text-text-primary"
+                >
+                  Load More ({activePositions.length - activeLimit} remaining)
+                </button>
+              )}
+            </div>
+          )}
 
-            {/* Claimable positions */}
-            {claimablePositions.length > 0 && (
-              <div className="mt-8">
-                <h2 className="mb-4 text-lg font-black text-accent-amber">
-                  Claimable Winnings
-                </h2>
-                <div className="flex flex-col gap-3">
-                  {claimablePositions.map((pos) => (
-                    <PositionCard
-                      key={pos.pubkey}
-                      position={pos}
-                      onClaim={handleClaim}
-                    />
-                  ))}
-                </div>
+          {/* Settled positions */}
+          {settledPositions.length > 0 && (
+            <div className="mt-8">
+              <h2 className="mb-4 text-lg font-black text-text-secondary">
+                Settled
+              </h2>
+              <div className="flex flex-col gap-3">
+                {settledPositions.slice(0, settledLimit).map((pos) => (
+                  <PositionCard key={pos.pubkey} position={pos} />
+                ))}
               </div>
-            )}
+              {settledPositions.length > settledLimit && (
+                <button
+                  onClick={() =>
+                    setSettledLimit((l) => l + POSITIONS_PER_PAGE)
+                  }
+                  className="mt-3 w-full rounded-xl border border-border-subtle py-3 text-sm text-text-secondary transition-all hover:border-border-hover hover:text-text-primary"
+                >
+                  Load More ({settledPositions.length - settledLimit} remaining)
+                </button>
+              )}
+            </div>
+          )}
 
-            {/* Active positions */}
-            {activePositions.length > 0 && (
-              <div className="mt-8">
-                <h2 className="mb-4 text-lg font-black text-text-primary">
-                  Active Positions
-                </h2>
-                <div className="flex flex-col gap-3">
-                  {activePositions.map((pos) => (
-                    <PositionCard
-                      key={pos.pubkey}
-                      position={pos}
-                      onClose={(p) =>
-                        setCloseModal({ open: true, position: p })
-                      }
-                    />
-                  ))}
-                </div>
+          {/* Empty state */}
+          {!isLoading && positions.length === 0 && (
+            <div className="mt-8 flex flex-col items-center rounded-2xl border border-border-subtle p-16 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-bg-elevated">
+                <TrendingUp size={28} className="text-text-tertiary" />
               </div>
-            )}
+              <h3 className="mt-6 text-lg font-black text-text-primary">
+                No positions yet
+              </h3>
+              <p className="mt-2 max-w-sm text-sm leading-relaxed text-text-secondary">
+                Install the Priced Chrome extension to see live prediction
+                market odds on tweets and trade in one click.
+              </p>
+              <div className="mt-6 flex gap-3">
+                <a
+                  href="#waitlist"
+                  className="rounded-full bg-accent-amber px-6 py-3 text-sm font-bold text-bg-deepest transition-opacity hover:opacity-90"
+                >
+                  Add to Chrome
+                </a>
+                <a
+                  href="/"
+                  className="rounded-full border border-border-subtle px-6 py-3 text-sm font-medium text-text-secondary transition-all hover:border-border-hover hover:text-text-primary"
+                >
+                  Learn More
+                </a>
+              </div>
+            </div>
+          )}
+        </div>
 
-            {/* Settled positions */}
-            {settledPositions.length > 0 && (
-              <div className="mt-8">
-                <h2 className="mb-4 text-lg font-black text-text-secondary">
-                  Settled
-                </h2>
-                <div className="flex flex-col gap-3">
-                  {settledPositions.map((pos) => (
-                    <PositionCard key={pos.pubkey} position={pos} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Empty state */}
-            {!isLoading && positions.length === 0 && (
-              <div className="mt-8 rounded-2xl border border-border-subtle p-12 text-center">
-                <p className="text-lg font-black text-text-primary">
-                  No positions yet
-                </p>
-                <p className="mt-2 text-sm text-text-tertiary">
-                  Trade on X with the Priced extension to get started.
-                </p>
-              </div>
-            )}
-          </>
-        ) : (
-          /* History tab */
-          walletAddress && <HistoryTimeline wallet={walletAddress} />
-        )}
+        {/* History tab -- always mounted to keep SWR cache warm */}
+        <div className={activeTab === "history" ? "" : "hidden"}>
+          {walletAddress && <HistoryTimeline wallet={walletAddress} />}
+        </div>
       </main>
+
+      <Footer />
 
       {/* Close position modal */}
       <ClosePositionModal

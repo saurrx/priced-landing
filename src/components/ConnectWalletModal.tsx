@@ -94,7 +94,7 @@ export default function ConnectWalletModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-bg-deepest/80 px-4 backdrop-blur-xl"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-bg-deepest/80 px-0 sm:px-4 backdrop-blur-xl"
           onClick={onClose}
         >
           <motion.div
@@ -102,7 +102,7 @@ export default function ConnectWalletModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="w-full max-w-md rounded-2xl border border-border-subtle bg-bg-surface p-8"
+            className="w-full max-w-md rounded-t-2xl sm:rounded-2xl max-h-[85vh] overflow-y-auto border border-border-subtle bg-bg-surface p-8"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}

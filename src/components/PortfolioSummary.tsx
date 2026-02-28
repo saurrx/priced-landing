@@ -1,19 +1,9 @@
 import type { Position, Profile } from "@/lib/jupiter";
+import { formatUsd, formatPercent } from "@/lib/format";
 
 interface PortfolioSummaryProps {
   positions: Position[];
   profile: Profile;
-}
-
-function formatUsd(value: number): string {
-  if (Math.abs(value) < 0.005) return "$0.00";
-  const abs = Math.abs(value);
-  const sign = value < 0 ? "-" : "";
-  return `${sign}$${abs.toFixed(2)}`;
-}
-
-function formatPercent(value: number): string {
-  return `${(value * 100).toFixed(1)}%`;
 }
 
 export default function PortfolioSummary({

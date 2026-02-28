@@ -19,12 +19,14 @@ function base64ToUint8Array(base64: string): Uint8Array {
 
 /**
  * Sign and submit a Jupiter transaction returned from our API routes.
+ * Retries submission up to `maxRetries` times on transient failures.
  * Returns the transaction signature on success.
  */
 export async function signAndSendTransaction(
   transactionBase64: string,
   wallet: WalletContextState,
-  connection: Connection
+  connection: Connection,
+  maxRetries = 2
 ): Promise<string> {
   if (!wallet.signTransaction) {
     throw new Error("Wallet does not support signing");
@@ -32,7 +34,7 @@ export async function signAndSendTransaction(
 
   const bytes = base64ToUint8Array(transactionBase64);
 
-  // Try VersionedTransaction first (Jupiter typically uses these)
+  // Sign once — reuse across retries
   let signed: VersionedTransaction | Transaction;
   try {
     const versionedTx = VersionedTransaction.deserialize(bytes);
@@ -44,23 +46,37 @@ export async function signAndSendTransaction(
   }
 
   const serialized = signed.serialize();
-  const signature = await connection.sendRawTransaction(serialized, {
-    skipPreflight: false,
-    maxRetries: 3,
-  });
 
-  // Wait for confirmation
-  const latestBlockhash = await connection.getLatestBlockhash();
-  await connection.confirmTransaction(
-    {
-      signature,
-      blockhash: latestBlockhash.blockhash,
-      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
-    },
-    "confirmed"
-  );
+  // Retry loop for submission + confirmation
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const signature = await connection.sendRawTransaction(serialized, {
+        skipPreflight: false,
+        maxRetries: 3,
+      });
 
-  return signature;
+      const latestBlockhash = await connection.getLatestBlockhash();
+      await connection.confirmTransaction(
+        {
+          signature,
+          blockhash: latestBlockhash.blockhash,
+          lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+        },
+        "confirmed"
+      );
+
+      return signature;
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      // Never retry user rejections
+      if (lastError.message.includes("User rejected")) throw lastError;
+      if (attempt < maxRetries) {
+        await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+      }
+    }
+  }
+  throw lastError!;
 }
 
 /**

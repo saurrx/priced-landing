@@ -13,6 +13,8 @@ import {
   TorusWalletAdapter,
   MathWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
+import { ToastProvider } from "@/components/Toast";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 export default function WalletProvider({ children }: { children: ReactNode }) {
   const endpoint = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com";
@@ -34,7 +36,9 @@ export default function WalletProvider({ children }: { children: ReactNode }) {
   return (
     <ConnectionProvider endpoint={endpoint}>
       <SolanaWalletProvider wallets={wallets} autoConnect>
-        {children}
+        <ErrorBoundary>
+          <ToastProvider>{children}</ToastProvider>
+        </ErrorBoundary>
       </SolanaWalletProvider>
     </ConnectionProvider>
   );

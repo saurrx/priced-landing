@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
+import { useIsMobile } from "@/lib/useIsMobile";
 
 const MeshGradient = dynamic(
   () => import("@paper-design/shaders-react").then((m) => m.MeshGradient),
@@ -13,11 +14,7 @@ const CTA_URL = "#waitlist";
 export default function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const [isMobile, setIsMobile] = useState(true);
-
-  useEffect(() => {
-    setIsMobile(window.matchMedia("(max-width: 768px)").matches);
-  }, []);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -35,15 +32,17 @@ export default function Hero() {
       ref={sectionRef}
       className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pt-20 pb-24"
     >
-      {/* Shader background */}
-      {!isMobile && (
+      {/* Shader background or mobile fallback gradient */}
+      {!isMobile ? (
         <div className="pointer-events-none absolute inset-0 z-0">
           <MeshGradient
-            colors={["#14f195", "#0a2540", "#f5a623", "#06080c"]}
+            colors={["#14f195", "#0a2540", "#f2f810", "#06080c"]}
             speed={isVisible ? 0.08 : 0}
             style={{ width: "100%", height: "100%", opacity: 0.3 }}
           />
         </div>
+      ) : (
+        <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-br from-trading-green/[0.06] via-transparent to-accent-amber/[0.04]" />
       )}
 
       <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center text-center">

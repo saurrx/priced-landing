@@ -32,7 +32,14 @@ export async function GET(request: NextRequest) {
 
     const history = (res.history || []).map(convertPnlPoint);
 
-    return NextResponse.json({ history });
+    return NextResponse.json(
+      { history },
+      {
+        headers: {
+          "Cache-Control": "private, max-age=30, stale-while-revalidate=15",
+        },
+      }
+    );
   } catch (err) {
     // Profile-based endpoints return 404 for new wallets — return empty data
     const errMsg = err instanceof Error ? err.message : "";

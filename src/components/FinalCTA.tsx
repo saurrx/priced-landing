@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
+import { useIsMobile } from "@/lib/useIsMobile";
 
 const SmokeRing = dynamic(
   () => import("@paper-design/shaders-react").then((m) => m.SmokeRing),
@@ -13,11 +14,7 @@ const CTA_URL = "#waitlist";
 export default function FinalCTA() {
   const sectionRef = useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const [isMobile, setIsMobile] = useState(true);
-
-  useEffect(() => {
-    setIsMobile(window.matchMedia("(max-width: 768px)").matches);
-  }, []);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -32,8 +29,8 @@ export default function FinalCTA() {
 
   return (
     <section ref={sectionRef} className="relative overflow-hidden px-6 py-32">
-      {/* SmokeRing shader background */}
-      {!isMobile && (
+      {/* SmokeRing shader background or mobile fallback */}
+      {!isMobile ? (
         <div className="pointer-events-none absolute inset-0 z-0">
           <SmokeRing
             colorBack="#06080c"
@@ -45,6 +42,8 @@ export default function FinalCTA() {
             style={{ width: "100%", height: "100%", opacity: 0.2 }}
           />
         </div>
+      ) : (
+        <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-br from-trading-green/[0.05] via-transparent to-transparent" />
       )}
 
       {/* Amber divider line */}
