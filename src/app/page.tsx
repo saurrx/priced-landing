@@ -5,6 +5,7 @@ import TweetDemo from "@/components/TweetDemo";
 import Stats from "@/components/Stats";
 import TrustBar from "@/components/TrustBar";
 import FinalCTA from "@/components/FinalCTA";
+import Footer from "@/components/Footer";
 
 export default function Home() {
   return (
@@ -23,6 +24,7 @@ export default function Home() {
         <Stats />
         <TrustBar />
         <FinalCTA />
+        <Footer />
       </div>
     </div>
   );

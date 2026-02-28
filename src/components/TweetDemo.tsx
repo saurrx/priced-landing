@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
+import { useIsMobile } from "@/lib/useIsMobile";
 import TweetCard from "./TweetCard";
 import PricedBar from "./PricedBar";
 
@@ -14,11 +15,7 @@ export default function TweetDemo() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const [isMobile, setIsMobile] = useState(true);
-
-  useEffect(() => {
-    setIsMobile(window.matchMedia("(max-width: 768px)").matches);
-  }, []);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -41,8 +38,8 @@ export default function TweetDemo() {
 
   return (
     <section ref={sectionRef} className="relative overflow-hidden px-6 py-24">
-      {/* GodRays shader background */}
-      {!isMobile && (
+      {/* GodRays shader background or mobile fallback */}
+      {!isMobile ? (
         <div className="pointer-events-none absolute inset-0 z-0">
           <GodRays
             colorBack="#06080c"
@@ -56,6 +53,8 @@ export default function TweetDemo() {
             style={{ width: "100%", height: "100%", opacity: 0.15 }}
           />
         </div>
+      ) : (
+        <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-br from-trading-green/[0.04] via-transparent to-transparent" />
       )}
 
       <div className="relative z-10 mx-auto max-w-2xl">

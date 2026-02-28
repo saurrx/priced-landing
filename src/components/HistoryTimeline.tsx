@@ -1,17 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import useSWR from "swr";
-import { Check, X, ArrowUpRight, ArrowDownLeft, Gift } from "lucide-react";
+import { Check, X, ArrowUpRight, ArrowDownLeft, Gift, TrendingUp } from "lucide-react";
 import type { HistoryEvent } from "@/lib/jupiter";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
-
-function formatUsd(value: number): string {
-  if (Math.abs(value) < 0.005) return "$0.00";
-  const abs = Math.abs(value);
-  const sign = value < 0 ? "-" : "";
-  return `${sign}$${abs.toFixed(2)}`;
-}
+import { fetcher } from "@/lib/fetcher";
+import { formatUsd } from "@/lib/format";
 
 function getEventIcon(type: string) {
   switch (type) {
@@ -78,7 +72,10 @@ interface HistoryTimelineProps {
   wallet: string;
 }
 
+const HISTORY_PER_PAGE = 20;
+
 export default function HistoryTimeline({ wallet }: HistoryTimelineProps) {
+  const [limit, setLimit] = useState(HISTORY_PER_PAGE);
   const { data, isLoading } = useSWR<{ history: HistoryEvent[] }>(
     `/api/history?wallet=${wallet}`,
     fetcher
@@ -101,18 +98,30 @@ export default function HistoryTimeline({ wallet }: HistoryTimelineProps) {
 
   if (history.length === 0) {
     return (
-      <div className="rounded-2xl border border-border-subtle p-12 text-center">
-        <p className="text-sm text-text-tertiary">
-          No trading history yet. Trade on X with the Priced extension to get
-          started.
+      <div className="flex flex-col items-center rounded-2xl border border-border-subtle p-16 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-bg-elevated">
+          <TrendingUp size={28} className="text-text-tertiary" />
+        </div>
+        <h3 className="mt-6 text-lg font-black text-text-primary">
+          No trading history yet
+        </h3>
+        <p className="mt-2 max-w-sm text-sm leading-relaxed text-text-secondary">
+          Install the Priced Chrome extension and trade on X to see your history
+          here.
         </p>
+        <a
+          href="#waitlist"
+          className="mt-6 rounded-full bg-accent-amber px-6 py-3 text-sm font-bold text-bg-deepest transition-opacity hover:opacity-90"
+        >
+          Add to Chrome
+        </a>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-2">
-      {history.map((event) => (
+      {history.slice(0, limit).map((event) => (
         <div
           key={event.id}
           className="flex items-center gap-4 rounded-xl border border-border-subtle px-4 py-3 transition-colors hover:border-border-hover"
@@ -156,6 +165,14 @@ export default function HistoryTimeline({ wallet }: HistoryTimelineProps) {
           </div>
         </div>
       ))}
+      {history.length > limit && (
+        <button
+          onClick={() => setLimit((l) => l + HISTORY_PER_PAGE)}
+          className="mt-3 w-full rounded-xl border border-border-subtle py-3 text-sm text-text-secondary transition-all hover:border-border-hover hover:text-text-primary"
+        >
+          Load More ({history.length - limit} remaining)
+        </button>
+      )}
     </div>
   );
 }

@@ -45,7 +45,14 @@ export async function GET(request: NextRequest) {
       ? convertProfile(profileResult)
       : DEFAULT_PROFILE;
 
-    return NextResponse.json({ positions, profile });
+    return NextResponse.json(
+      { positions, profile },
+      {
+        headers: {
+          "Cache-Control": "private, max-age=10, stale-while-revalidate=5",
+        },
+      }
+    );
   } catch (err) {
     console.error("Portfolio API error:", err);
     return NextResponse.json(

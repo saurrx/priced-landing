@@ -1,18 +1,12 @@
 "use client";
 
 import type { Position } from "@/lib/jupiter";
+import { formatUsd } from "@/lib/format";
 
 interface PositionCardProps {
   position: Position;
   onClose?: (position: Position) => void;
   onClaim?: (position: Position) => void;
-}
-
-function formatUsd(value: number): string {
-  if (Math.abs(value) < 0.005) return "$0.00";
-  const abs = Math.abs(value);
-  const sign = value < 0 ? "-" : "";
-  return `${sign}$${abs.toFixed(2)}`;
 }
 
 export default function PositionCard({

@@ -22,7 +22,14 @@ export async function GET(request: NextRequest) {
 
     const history = (res.data || []).map(convertHistoryEvent);
 
-    return NextResponse.json({ history });
+    return NextResponse.json(
+      { history },
+      {
+        headers: {
+          "Cache-Control": "private, max-age=15, stale-while-revalidate=10",
+        },
+      }
+    );
   } catch (err) {
     // Return empty history for wallets that haven't traded
     const errMsg = err instanceof Error ? err.message : "";

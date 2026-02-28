@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useIsMobile } from "@/lib/useIsMobile";
 
 interface ShaderBackgroundProps {
   children: ReactNode;
@@ -15,12 +16,10 @@ export default function ShaderBackground({
 }: ShaderBackgroundProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const isMobile = useIsMobile();
   const [hasWebGL, setHasWebGL] = useState(true);
 
   useEffect(() => {
-    setIsMobile(window.matchMedia("(max-width: 768px)").matches);
-
     try {
       const canvas = document.createElement("canvas");
       const gl =

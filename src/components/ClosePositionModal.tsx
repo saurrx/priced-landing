@@ -7,19 +7,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import type { Position } from "@/lib/jupiter";
 import { signAndSendTransaction, getSolscanUrl } from "@/lib/transactions";
+import { formatUsd } from "@/lib/format";
+import { friendlyError } from "@/lib/errors";
 
 interface ClosePositionModalProps {
   position: Position | null;
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-}
-
-function formatUsd(value: number): string {
-  if (Math.abs(value) < 0.005) return "$0.00";
-  const abs = Math.abs(value);
-  const sign = value < 0 ? "-" : "";
-  return `${sign}$${abs.toFixed(2)}`;
 }
 
 export default function ClosePositionModal({
@@ -76,16 +71,7 @@ export default function ClosePositionModal({
         setTxSignature(null);
       }, 2000);
     } catch (err) {
-      if (
-        err instanceof Error &&
-        err.message.includes("User rejected")
-      ) {
-        setError("Transaction cancelled");
-      } else {
-        setError(
-          err instanceof Error ? err.message : "Transaction failed"
-        );
-      }
+      setError(friendlyError(err));
       setStatus("error");
     }
   };
@@ -99,14 +85,14 @@ export default function ClosePositionModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-bg-deepest/80 px-4 backdrop-blur-xl"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-bg-deepest/80 px-0 sm:px-4 backdrop-blur-xl"
           onClick={onClose}
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="w-full max-w-md rounded-2xl border border-border-subtle bg-bg-surface p-6"
+            className="w-full max-w-md rounded-t-2xl sm:rounded-2xl max-h-[85vh] overflow-y-auto border border-border-subtle bg-bg-surface p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between">
