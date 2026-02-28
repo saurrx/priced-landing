@@ -16,6 +16,7 @@ export default function PortfolioSummary({
   const claimableTotal = positions
     .filter((p) => p.claimable && !p.claimed)
     .reduce((sum, p) => sum + p.payout, 0);
+  const hasSettled = profile.correctPredictions + profile.wrongPredictions > 0;
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -31,7 +32,7 @@ export default function PortfolioSummary({
         </div>
       </div>
 
-      {/* Unrealized PnL */}
+      {/* PnL */}
       <div className="rounded-2xl border border-border-subtle p-6 transition-colors hover:border-border-hover">
         <p className="text-sm text-text-secondary">Unrealized PnL</p>
         <p
@@ -45,9 +46,27 @@ export default function PortfolioSummary({
         >
           {formatUsd(unrealizedPnl)}
         </p>
-        <div className="mt-3 flex gap-4 text-xs text-text-tertiary">
-          <span>Realized: {formatUsd(profile.realizedPnl)}</span>
-          <span>Win rate: {formatPercent(profile.winRate)}</span>
+        <div className="mt-3 flex flex-col gap-1.5">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-text-tertiary">Realized</span>
+            <span
+              className={
+                Math.abs(profile.realizedPnl) < 0.005
+                  ? "font-medium text-text-primary"
+                  : profile.realizedPnl >= 0
+                    ? "font-medium text-trading-green"
+                    : "font-medium text-trading-red"
+              }
+            >
+              {formatUsd(profile.realizedPnl)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-text-tertiary">Win rate</span>
+            <span className="font-medium text-text-primary">
+              {hasSettled ? formatPercent(profile.winRate) : "—"}
+            </span>
+          </div>
         </div>
       </div>
 
