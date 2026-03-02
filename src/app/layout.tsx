@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import WalletProvider from "@/providers/WalletProvider";
 import "./globals.css";
 
@@ -97,6 +98,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
           <WalletProvider>{children}</WalletProvider>
+          <Analytics />
         </body>
     </html>
   );
