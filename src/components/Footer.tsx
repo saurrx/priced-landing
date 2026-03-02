@@ -1,7 +1,7 @@
 const footerLinks: Record<string, { label: string; href: string; external?: boolean }[]> = {
   Product: [
-    { label: "Docs", href: "/docs" },
-    { label: "Chrome Extension", href: "#waitlist" },
+    { label: "Docs", href: "https://github.com/saurrx/priced/blob/master/docs/ARCHITECTURE.md", external: true },
+    { label: "Chrome Extension", href: "https://github.com/saurrx/priced" },
     { label: "Portfolio", href: "/portfolio" },
   ],
   Legal: [
@@ -9,9 +9,9 @@ const footerLinks: Record<string, { label: string; href: string; external?: bool
     { label: "Terms of Service", href: "/terms" },
   ],
   Community: [
-    { label: "Twitter / X", href: "https://x.com/priced_app", external: true },
-    { label: "Discord", href: "https://discord.gg/priced", external: true },
-    { label: "GitHub", href: "https://github.com/priced", external: true },
+    { label: "Twitter / X", href: "https://x.com/SeerumAI", external: true },
+    { label: "Telegram", href: "https://t.me/+dz78jeyPwk5lZTI1", external: true },
+    { label: "GitHub", href: "https://github.com/saurrx/priced", external: true },
   ],
 };
 

@@ -286,7 +286,7 @@ export default function PortfolioPage() {
               </p>
               <div className="mt-6 flex gap-3">
                 <a
-                  href="#waitlist"
+                  href="https://github.com/saurrx/priced"
                   className="rounded-full bg-accent-amber px-6 py-3 text-sm font-bold text-bg-deepest transition-opacity hover:opacity-90"
                 >
                   Add to Chrome

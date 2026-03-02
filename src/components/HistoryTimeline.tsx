@@ -110,7 +110,7 @@ export default function HistoryTimeline({ wallet }: HistoryTimelineProps) {
           here.
         </p>
         <a
-          href="#waitlist"
+          href="https://github.com/saurrx/priced"
           className="mt-6 rounded-full bg-accent-amber px-6 py-3 text-sm font-bold text-bg-deepest transition-opacity hover:opacity-90"
         >
           Add to Chrome
