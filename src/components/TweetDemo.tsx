@@ -13,7 +13,8 @@ const GodRays = dynamic(
 
 export default function TweetDemo() {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const [expanded, setExpanded] = useState(false);
+  const [barVisible, setBarVisible] = useState(false);
+  const [autoExpand, setAutoExpand] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const isMobile = useIsMobile();
 
@@ -21,19 +22,28 @@ export default function TweetDemo() {
     const el = sectionRef.current;
     if (!el) return;
 
+    let barTimer: ReturnType<typeof setTimeout>;
+    let expandTimer: ReturnType<typeof setTimeout>;
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         setIsVisible(entry.isIntersecting);
         if (entry.isIntersecting) {
-          const timer = setTimeout(() => setExpanded(true), 1500);
-          return () => clearTimeout(timer);
+          // Step 1: PricedBar slides in (collapsed) after 1.2s
+          barTimer = setTimeout(() => setBarVisible(true), 1200);
+          // Step 2: Auto-expand the panel after another 1.5s
+          expandTimer = setTimeout(() => setAutoExpand(true), 2700);
         }
       },
       { threshold: 0.3 }
     );
 
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      clearTimeout(barTimer);
+      clearTimeout(expandTimer);
+    };
   }, []);
 
   return (
@@ -58,9 +68,15 @@ export default function TweetDemo() {
       )}
 
       <div className="relative z-10 mx-auto max-w-2xl">
-        <h2 className="gradient-text mb-12 text-center text-3xl font-black tracking-tight sm:text-4xl">
+        <h2 className="gradient-text mb-4 text-center text-3xl font-black tracking-tight sm:text-4xl">
           See it in action.
         </h2>
+
+        <p className="mx-auto mb-12 max-w-lg text-center text-base leading-relaxed text-text-secondary">
+          Priced surfaces prediction market odds on the tweets you&apos;re already
+          reading. Bet YES or NO without leaving your feed. One click, on-chain,
+          through Solana Blinks.
+        </p>
 
         <div className="mx-auto max-w-xl">
           <TweetCard
@@ -74,13 +90,15 @@ export default function TweetDemo() {
             market="Humans on Mars by 2030?"
             yesPrice={12}
             noPrice={88}
-            source="Kalshi"
-            expanded={expanded}
+            volume="$28.7M"
+            closesDate="Dec 2026"
+            visible={barVisible}
+            autoExpand={autoExpand}
           />
         </div>
 
-        <p className="mt-8 text-center text-sm text-text-secondary">
-          92% match accuracy. Under 500ms.
+        <p className="mt-8 text-center text-sm text-text-tertiary">
+          Click the arrow to expand — just like on Twitter.
         </p>
       </div>
     </section>
