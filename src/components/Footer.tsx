@@ -1,7 +1,7 @@
 const footerLinks: Record<string, { label: string; href: string; external?: boolean }[]> = {
   Product: [
     { label: "Docs", href: "https://github.com/saurrx/priced/blob/master/docs/ARCHITECTURE.md", external: true },
-    { label: "Chrome Extension", href: "#waitlist" },
+    { label: "Chrome Extension", href: "https://github.com/saurrx/priced" },
     { label: "Portfolio", href: "/portfolio" },
   ],
   Legal: [

@@ -9,7 +9,7 @@ const SmokeRing = dynamic(
   { ssr: false }
 );
 
-const CTA_URL = "#waitlist";
+const CTA_URL = "https://github.com/saurrx/priced";
 
 export default function FinalCTA() {
   const sectionRef = useRef<HTMLElement>(null);

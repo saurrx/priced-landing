@@ -1,4 +1,4 @@
-const partners = ["Kalshi", "DFlow", "Solana", "Jupiter"];
+const partners = ["Polymarket", "OrbitFlare", "Solana", "Jupiter"];
 
 export default function TrustBar() {
   return (
