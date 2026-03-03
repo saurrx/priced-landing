@@ -11,7 +11,7 @@ const MeshGradient = dynamic(
   { ssr: false }
 );
 
-const CTA_URL = "https://github.com/saurrx/priced";
+const CTA_URL = "https://chromewebstore.google.com/detail/priced-by-seerum/gdlbhdololkgfmgbicopfkhcmilpcfkp";
 
 export default function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -62,6 +62,8 @@ export default function Hero() {
           <div className="pt-8 pb-16 text-center">
             <a
               href={CTA_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={() => console.log("cta_click", { location: "hero" })}
               className="inline-block rounded-full bg-accent-amber px-8 py-4 text-base font-bold text-bg-deepest transition-opacity hover:opacity-90"
             >
