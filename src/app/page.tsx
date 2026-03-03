@@ -1,3 +1,4 @@
+import Banner from "@/components/Banner";
 import Nav from "@/components/Nav";
 import Hero from "@/components/Hero";
 import Steps from "@/components/Steps";
@@ -17,6 +18,7 @@ export default function Home() {
       </div>
 
       <div className="relative z-10">
+        <Banner />
         <Nav />
         <Hero />
         <Steps />

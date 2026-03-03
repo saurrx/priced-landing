@@ -16,7 +16,8 @@ import ConnectWalletModal from "./ConnectWalletModal";
 import { truncateAddress } from "@/lib/transactions";
 import { useToast } from "@/components/Toast";
 
-const CTA_URL = "https://github.com/saurrx/priced";
+const CTA_URL = "https://chromewebstore.google.com/detail/priced-by-seerum/gdlbhdololkgfmgbicopfkhcmilpcfkp";
+const BANNER_DISMISS_KEY = "priced-banner-dismissed";
 
 const XIcon = ({ size = 16 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
@@ -43,7 +44,17 @@ export default function Nav() {
   const { toast } = useToast();
   const [modalOpen, setModalOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [bannerVisible, setBannerVisible] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Track banner visibility
+  useEffect(() => {
+    const check = () =>
+      setBannerVisible(localStorage.getItem(BANNER_DISMISS_KEY) !== "true");
+    check();
+    window.addEventListener("storage", check);
+    return () => window.removeEventListener("storage", check);
+  }, []);
 
   // Click-outside handler for dropdown
   useEffect(() => {
@@ -83,7 +94,7 @@ export default function Nav() {
 
   return (
     <>
-      <nav className="fixed top-0 right-0 left-0 z-40">
+      <nav className={`fixed right-0 left-0 z-40 transition-[top] duration-300 ${bannerVisible ? "top-10" : "top-0"}`}>
         <div className="mx-auto flex max-w-6xl items-center justify-between rounded-b-2xl border-b border-border-subtle bg-bg-deepest/70 px-4 py-3 backdrop-blur-xl sm:px-6 sm:py-4">
           <a href="/" className="flex items-center gap-2.5">
             <img
@@ -180,6 +191,8 @@ export default function Nav() {
             )}
             <a
               href={CTA_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={() => console.log("cta_click", { location: "nav" })}
               className="rounded-full bg-accent-amber px-3 py-2 text-xs font-bold text-bg-deepest transition-opacity hover:opacity-90 sm:px-5 sm:py-2.5 sm:text-sm"
             >
